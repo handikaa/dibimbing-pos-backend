@@ -1,0 +1,51 @@
+<?php
+namespace App\Infrastructure\Persistence\Eloquent\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Infrastructure\Persistence\Eloquent\Models\Sale;
+use App\Infrastructure\Persistence\Eloquent\Models\Product;
+
+class SaleItem extends Model
+{
+    use SoftDeletes;
+
+    protected $table = 'sale_items';
+
+    protected $fillable = [
+        'sale_id',
+        'product_id',
+        'product_name',
+        'product_sku',
+        'product_barcode',
+        'rack_code',
+        'rack_name',
+        'quantity',
+        'cost_price',
+        'selling_price',
+        'discount_amount',
+        'line_total',
+    ];
+
+    protected $casts = [
+        'quantity' => 'integer',
+        'cost_price' => 'float',
+        'selling_price' => 'float',
+        'discount_amount' => 'float',
+        'line_total' => 'float',
+    ];
+
+    // =========================
+    // RELATIONS
+    // =========================
+
+    public function sale()
+    {
+        return $this->belongsTo(Sale::class, 'sale_id');
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id');
+    }
+}

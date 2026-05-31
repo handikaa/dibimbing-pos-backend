@@ -29,7 +29,7 @@ return new class extends Migration
             $table->timestamp('paid_at')->nullable();
             $table->timestamp('cancelled_at')->nullable();
             $table->timestamps();
-
+            $table->softDeletes();
             $table->index(['cashier_session_id', 'status']);
             $table->index(['cashier_id', 'status']);
             $table->index(['payment_method', 'status']);

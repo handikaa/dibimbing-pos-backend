@@ -11,6 +11,8 @@ use App\Domain\Product\Repositories\ProductRepositoryInterface;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentProductRepository;
 use App\Domain\Inventory\Repositories\InventoryRepositoryInterface;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentInventoryRepository;
+use App\Domain\CashierSession\Repositories\CashierSessionRepositoryInterface;
+use App\Infrastructure\Persistence\Eloquent\Repositories\CashierSessionRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,6 +37,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             InventoryRepositoryInterface::class,
             EloquentInventoryRepository::class
+        
+            );
+        $this->app->bind(
+            CashierSessionRepositoryInterface::class,
+            CashierSessionRepository::class
         );
     }
 

@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\InventoryController;
+use App\Http\Controllers\Api\CashierSessionController;
 
 Route::prefix('v1')->group(function () {
     Route::get('/health', HealthController::class);
@@ -73,5 +74,10 @@ Route::prefix('v1')->group(function () {
 
         Route::get('/inventory/low-stock', [InventoryController::class, 'lowStock'])
             ->middleware('permission:inventory.view_low_stock');
+
+
+        Route::get('cashier-sessions/active', [CashierSessionController::class, 'active']);
+        Route::post('cashier-sessions/open', [CashierSessionController::class, 'open']);
+        Route::post('cashier-sessions/{session}/close', [CashierSessionController::class, 'close']);
     });
 });

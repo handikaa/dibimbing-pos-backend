@@ -28,6 +28,7 @@ return new class extends Migration
             $table->text('closing_note')->nullable();
             $table->timestamp('opened_at');
             $table->timestamp('closed_at')->nullable();
+            $table->softDeletes();
             $table->timestamps();
 
             $table->index(['user_id', 'status']);
