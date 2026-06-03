@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Infrastructure\Persistence\Eloquent\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -24,6 +25,6 @@ class Rack extends Model
 
     public function products()
     {
-        return $this->hasMany(Product::class);
+        return $this->hasMany(Product::class, 'rack_id');
     }
 }

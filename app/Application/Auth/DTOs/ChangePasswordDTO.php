@@ -7,9 +7,11 @@ readonly class ChangePasswordDTO
     public function __construct(
         public string $currentPassword,
         public string $newPassword,
-    ) {
-    }
+    ) {}
 
+    /**
+     * Create from Request validated data
+     */
     public static function fromArray(array $data): self
     {
         return new self(

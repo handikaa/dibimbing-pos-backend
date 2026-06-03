@@ -14,6 +14,8 @@ use App\Http\Resources\Inventory\StockMovementResource;
 use App\Http\Responses\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class InventoryController extends Controller
 {
@@ -24,8 +26,13 @@ class InventoryController extends Controller
             perPage: (int) $request->integer('per_page', 10)
         );
 
-        return ApiResponse::pagination(
-            paginator: $products,
+        return ApiResponse::successPaginated(
+            pagination: [
+                'current_page' => $products->currentPage(),
+                'last_page' => $products->lastPage(),
+                'per_page' => $products->perPage(),
+                'total' => $products->total(),
+            ],
             data: ProductStockResource::collection($products),
             message: 'Stocks retrieved successfully'
         );
@@ -43,7 +50,7 @@ class InventoryController extends Controller
         return ApiResponse::success(
             data: new StockMovementResource($movement),
             message: 'Stock adjusted successfully',
-            status: 201
+            code: 201
         );
     }
 
@@ -54,11 +61,46 @@ class InventoryController extends Controller
             perPage: (int) $request->integer('per_page', 10)
         );
 
-        return ApiResponse::pagination(
-            paginator: $movements,
+        return ApiResponse::successPaginated(
             data: StockMovementResource::collection($movements),
+            pagination: [
+                'current_page' => $movements->currentPage(),
+                'last_page' => $movements->lastPage(),
+                'per_page' => $movements->perPage(),
+                'total' => $movements->total(),
+            ],
             message: 'Stock movements retrieved successfully'
         );
+    }
+
+    public function stockByBarcode(string $barcode, ListStocksUseCase $useCase): JsonResponse
+    {
+        try {
+            // Gunakan UseCase untuk mencari product & stock berdasarkan barcode
+            $productStock = $useCase->getStockByBarcode($barcode);
+
+            return ApiResponse::success(
+                data: new ProductStockResource($productStock),
+                message: 'Product stock retrieved successfully'
+            );
+        } catch (AuthorizationException $e) {
+            return ApiResponse::error(
+                message: 'Forbidden',
+                code: 403,
+                errors: $e->getMessage()
+            );
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(
+                message: 'Product not found',
+                code: 404
+            );
+        } catch (\Throwable $e) {
+            return ApiResponse::error(
+                message: 'Failed to retrieve product stock',
+                code: 500,
+                errors: config('app.debug') ? ['exception' => $e->getMessage()] : null
+            );
+        }
     }
 
     public function lowStock(ListLowStockProductsUseCase $useCase): JsonResponse

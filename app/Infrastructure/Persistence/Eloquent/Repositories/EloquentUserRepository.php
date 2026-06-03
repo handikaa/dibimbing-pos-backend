@@ -8,50 +8,62 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class EloquentUserRepository implements UserRepositoryInterface
 {
-    public function paginate(array $filters = [], int $perPage = 10): LengthAwarePaginator
+    protected User $model;
+
+    public function __construct(User $model)
     {
-        return User::query()
-            ->with('roles')
-            ->when($filters['search'] ?? null, function ($query, string $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('phone', 'like', "%{$search}%");
-                });
-            })
-            ->when($filters['role'] ?? null, function ($query, string $role) {
-                $query->role($role);
-            })
-            ->when(isset($filters['is_active']), function ($query) use ($filters) {
-                $query->where('is_active', filter_var($filters['is_active'], FILTER_VALIDATE_BOOLEAN));
-            })
-            ->latest()
-            ->paginate($perPage);
+        $this->model = $model;
+    }
+
+    public function paginate(array $filters = [], int $perPage = 10, int $page = 1): LengthAwarePaginator
+    {
+        $query = $this->model->newQuery();
+
+        // Filter search by name or email
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                  ->orWhere('email', 'like', "%$search%");
+            });
+        }
+
+        // Filter by role
+        if (!empty($filters['role'])) {
+            $role = $filters['role'];
+            $query->whereHas('roles', function ($q) use ($role) {
+                $q->where('name', $role);
+            });
+        }
+
+        // Filter by active status
+        if (isset($filters['is_active'])) {
+            $query->where('is_active', $filters['is_active']);
+        }
+
+        // Laravel pagination
+        return $query->paginate($perPage, ['*'], 'page', $page);
     }
 
     public function findById(int $id): ?User
     {
-        return User::query()
-            ->with('roles')
-            ->find($id);
+        return $this->model->find($id, ['*']); // Ensure all columns are selected
     }
 
     public function create(array $data): User
     {
-        return User::query()->create($data);
+        return $this->model->create($data);
     }
 
     public function update(User $user, array $data): User
     {
         $user->update($data);
-
-        return $user->refresh()->load('roles');
+        return $user;
     }
 
     public function deactivate(User $user): User
     {
-        $user->update(['is_active' => false]);
-
-        return $user->refresh()->load('roles');
+        $user->update(['is_active' => 0]);
+        return $user;
     }
 }

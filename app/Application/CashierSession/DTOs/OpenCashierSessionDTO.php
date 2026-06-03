@@ -2,20 +2,25 @@
 
 namespace App\Application\CashierSession\DTOs;
 
-readonly class OpenCashierSessionDTO
+use Illuminate\Contracts\Auth\Authenticatable;
+
+class OpenCashierSessionDTO
 {
     public function __construct(
-        public int $userId,
-        public float $openingCash,
-        public ?string $openingNote = null,
+        public readonly Authenticatable $user,
+        public readonly float $opening_cash,
+        public readonly ?string $opening_note = null,
     ) {}
 
-    public static function fromArray(array $data): self
+    /**
+     * Create from Request validated data
+     */
+    public static function fromRequest(Authenticatable $user, array $validated): self
     {
         return new self(
-            userId: $data['user_id'],
-            openingCash: $data['opening_cash'],
-            openingNote: $data['opening_note'] ?? null,
+            user: $user,
+            opening_cash: (float) $validated['opening_cash'],
+            opening_note: $validated['opening_note'] ?? null,
         );
     }
 }

@@ -10,6 +10,7 @@ use App\Application\Product\UseCases\ListProductsUseCase;
 use App\Application\Product\UseCases\SearchProductsForPosUseCase;
 use App\Application\Product\UseCases\ShowProductUseCase;
 use App\Application\Product\UseCases\UpdateProductUseCase;
+use App\Application\Product\UseCases\GetProductByBarcodeUseCase;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Product\StoreProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
@@ -17,6 +18,9 @@ use App\Http\Resources\Product\ProductResource;
 use App\Http\Responses\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Throwable;
 
 class ProductController extends Controller
 {
@@ -27,10 +31,16 @@ class ProductController extends Controller
             perPage: (int) $request->integer('per_page', 10)
         );
 
-        return ApiResponse::pagination(
-            paginator: $products,
+        return ApiResponse::successPaginated(
             data: ProductResource::collection($products),
-            message: 'Products retrieved successfully'
+            pagination: [
+                'current_page' => $products->currentPage(),
+                'last_page' => $products->lastPage(),
+                'per_page' => $products->perPage(),
+                'total' => $products->total(),
+            ],
+            message: 'Products retrieved successfully',
+            code: 200
         );
     }
 
@@ -55,7 +65,7 @@ class ProductController extends Controller
         return ApiResponse::success(
             data: new ProductResource($product),
             message: 'Product created successfully',
-            status: 201
+            code: 201
         );
     }
 
@@ -65,7 +75,8 @@ class ProductController extends Controller
 
         return ApiResponse::success(
             data: new ProductResource($product),
-            message: 'Product retrieved successfully'
+            message: 'Product retrieved successfully',
+            code: 200
         );
     }
 
@@ -93,5 +104,34 @@ class ProductController extends Controller
             data: new ProductResource($product),
             message: 'Product deactivated successfully'
         );
+    }
+
+    public function getByBarcode(string $barcode, GetProductByBarcodeUseCase $useCase)
+    {
+        try {
+            $product = $useCase->execute($barcode);
+
+            return ApiResponse::success(
+                data: new ProductResource($product),
+                message: 'Product found'
+            );
+        } catch (AuthorizationException $e) {
+            return ApiResponse::error(
+                message: 'Forbidden',
+                code: 403,
+                errors: $e->getMessage()
+            );
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(
+                message: 'Product not found',
+                code: 404
+            );
+        } catch (Throwable $e) {
+            return ApiResponse::error(
+                message: 'Failed to retrieve product',
+                code: 500,
+                errors: config('app.debug') ? ['exception' => $e->getMessage()] : null
+            );
+        }
     }
 }

@@ -2,12 +2,10 @@
 namespace App\Infrastructure\Persistence\Eloquent\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Infrastructure\Persistence\Eloquent\Models\Sale;
 
 class Payment extends Model
 {
-    use SoftDeletes;
 
     protected $table = 'payments';
 

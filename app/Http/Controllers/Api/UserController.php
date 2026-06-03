@@ -16,22 +16,40 @@ use App\Http\Resources\User\UserResource;
 use App\Http\Responses\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class UserController extends Controller
 {
     public function index(Request $request, ListUsersUseCase $useCase): JsonResponse
     {
-        $users = $useCase->execute(
-            actor: $request->user(),
-            filters: $request->only(['search', 'role', 'is_active']),
-            perPage: (int) $request->integer('per_page', 10)
-        );
+        try {
+            $paginator = $useCase->execute(
+                filters: $request->only(['search', 'role', 'is_active']),
+                page: (int) $request->get('page', 1),
+                perPage: (int) $request->get('per_page', 10)
+            );
 
-        return ApiResponse::pagination(
-            paginator: $users,
-            data: UserResource::collection($users),
-            message: 'Users retrieved successfully'
-        );
+            return ApiResponse::successPaginated(
+                data: UserResource::collection($paginator),
+                pagination: [
+                    'current_page' => $paginator->currentPage(),
+                    'last_page' => $paginator->lastPage(),
+                    'per_page' => $paginator->perPage(),
+                    'total' => $paginator->total(),
+                ],
+                message: 'Users retrieved successfully'
+            );
+        } catch (AuthorizationException $e) {
+            return ApiResponse::error(
+                message: $e->getMessage(),
+                code: 403
+            );
+        } catch (\Throwable $e) {
+            return ApiResponse::error(
+                message: 'Failed to retrieve users',
+                code: 500
+            );
+        }
     }
 
     public function store(StoreUserRequest $request, CreateUserUseCase $useCase): JsonResponse
@@ -44,7 +62,7 @@ class UserController extends Controller
         return ApiResponse::success(
             data: new UserResource($user),
             message: 'User created successfully',
-            status: 201
+            code: 201
         );
     }
 

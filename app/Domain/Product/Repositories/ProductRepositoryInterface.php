@@ -19,4 +19,6 @@ interface ProductRepositoryInterface
     public function update(Product $product, array $data): Product;
 
     public function deactivate(Product $product): Product;
+
+    public function findByBarcode(string $barcode): ?Product;
 }

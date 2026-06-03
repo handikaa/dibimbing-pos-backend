@@ -1,15 +1,11 @@
 <?php
+
 namespace App\Infrastructure\Persistence\Eloquent\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Infrastructure\Persistence\Eloquent\Models\Sale;
-use App\Infrastructure\Persistence\Eloquent\Models\Product;
 
 class SaleItem extends Model
 {
-    use SoftDeletes;
-
     protected $table = 'sale_items';
 
     protected $fillable = [
@@ -17,9 +13,6 @@ class SaleItem extends Model
         'product_id',
         'product_name',
         'product_sku',
-        'product_barcode',
-        'rack_code',
-        'rack_name',
         'quantity',
         'cost_price',
         'selling_price',
@@ -34,10 +27,6 @@ class SaleItem extends Model
         'discount_amount' => 'float',
         'line_total' => 'float',
     ];
-
-    // =========================
-    // RELATIONS
-    // =========================
 
     public function sale()
     {

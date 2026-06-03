@@ -8,10 +8,12 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\CashierSessionController;
+use App\Http\Controllers\Api\RackController;
+use App\Http\Controllers\Api\PosController;
+use App\Http\Controllers\Api\SalesController;
 
 Route::prefix('v1')->group(function () {
     Route::get('/health', HealthController::class);
-
 
     Route::post('/auth/login', [AuthController::class, 'login']);
 
@@ -19,7 +21,6 @@ Route::prefix('v1')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/profile', [AuthController::class, 'profile']);
         Route::put('/auth/change-password', [AuthController::class, 'changePassword']);
-
 
         Route::get('/users', [UserController::class, 'index'])->middleware('permission:user.view_any');
         Route::post('/users', [UserController::class, 'store'])->middleware('permission:user.create');
@@ -62,6 +63,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/pos/products', [ProductController::class, 'posSearch'])
             ->middleware('permission:pos.open');
 
+        Route::get('/products/by-barcode/{barcode}', [ProductController::class, 'getByBarcode'])
+            ->middleware('permission:product.view_any');
+
 
         Route::get('/inventory/stocks', [InventoryController::class, 'stocks'])
             ->middleware('permission:inventory.view_stock');
@@ -75,9 +79,44 @@ Route::prefix('v1')->group(function () {
         Route::get('/inventory/low-stock', [InventoryController::class, 'lowStock'])
             ->middleware('permission:inventory.view_low_stock');
 
+        Route::get('/inventory/stocks/barcode/{barcode}', [InventoryController::class, 'stockByBarcode'])
+            ->middleware('permission:inventory.view_stock');
+
 
         Route::get('cashier-sessions/active', [CashierSessionController::class, 'active']);
         Route::post('cashier-sessions/open', [CashierSessionController::class, 'open']);
         Route::post('cashier-sessions/{session}/close', [CashierSessionController::class, 'close']);
+        Route::get('/cashier-sessions', [CashierSessionController::class, 'index'])
+            ->middleware('permission:session.view_any');
+
+        Route::apiResource('racks', RackController::class);
+        Route::patch('racks/{rack}/deactivate', [RackController::class, 'deactivate']);
+
+
+        Route::get('/pos/products', [PosController::class, 'products'])
+            ->middleware('permission:product.view_any');
+        Route::post('/pos/checkout/cash', [PosController::class, 'checkoutCash'])
+            ->middleware('permission:pos.checkout_cash');
+        Route::post('/pos/open-bill', [PosController::class, 'openBill'])
+            ->middleware(['auth:sanctum', 'permission:pos.open']);
+
+
+
+        Route::get('/sales', [SalesController::class, 'index'])
+            ->middleware('permission:sales.view_any|sales.view_own');
+        Route::get('/sales/{sale}', [SalesController::class, 'show'])
+            ->middleware('permission:sales.view_detail');
+        Route::get('/sales/{sale}/receipt', [SalesController::class, 'receipt'])
+            ->middleware('permission:sales.view_detail');
+        Route::post('/sales/{sale}/cancel', [SalesController::class, 'cancel'])
+            ->middleware('permission:sales.cancel_unpaid');
+        Route::post('/sales/{sale}/items', [SalesController::class, 'addItem'])
+            ->middleware('permission:pos.open');
+        Route::put('/sales/{sale}/items/{item}', [SalesController::class, 'updateItem'])
+            ->middleware('permission:pos.open');
+        Route::delete('/sales/{sale}/items/{item}', [SalesController::class, 'deleteItem'])
+            ->middleware('permission:pos.open');
+        Route::post('/sales/{sale}/checkout/cash', [SalesController::class, 'openBillCheckoutCash'])
+            ->middleware('permission:pos.checkout_cash');
     });
 });

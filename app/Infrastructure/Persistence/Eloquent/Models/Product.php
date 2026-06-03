@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
     'category_id',
+    'rack_id',
     'name',
     'sku',
     'barcode',
@@ -39,6 +40,11 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function rack(): BelongsTo
+    {
+        return $this->belongsTo(Rack::class, 'rack_id');
     }
 
     public function getIsLowStockAttribute(): bool

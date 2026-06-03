@@ -9,7 +9,17 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 class EloquentInventoryRepository implements InventoryRepositoryInterface
+
 {
+    // Tambahkan property model
+    protected Product $model;
+
+    // Constructor
+    public function __construct(Product $model)
+    {
+        $this->model = $model;
+    }
+
     public function paginateStocks(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
         return Product::query()
@@ -84,5 +94,10 @@ class EloquentInventoryRepository implements InventoryRepositoryInterface
         return StockMovement::query()
             ->create($data)
             ->load(['product.category', 'user']);
+    }
+
+    public function findByBarcode(string $barcode): ?Product
+    {
+        return $this->model->where('barcode', $barcode)->first();
     }
 }

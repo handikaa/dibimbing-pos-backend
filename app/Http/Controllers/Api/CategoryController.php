@@ -16,21 +16,47 @@ use App\Http\Resources\Category\CategoryResource;
 use App\Http\Responses\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Throwable;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class CategoryController extends Controller
 {
     public function index(Request $request, ListCategoriesUseCase $useCase): JsonResponse
     {
-        $categories = $useCase->execute(
-            filters: $request->only(['search', 'is_active']),
-            perPage: (int) $request->integer('per_page', 10)
-        );
+        try {
+            $categories = $useCase->execute(
+                filters: $request->only(['search', 'is_active']),
+                perPage: (int) $request->integer('per_page', 10)
+            );
 
-        return ApiResponse::pagination(
-            paginator: $categories,
-            data: CategoryResource::collection($categories),
-            message: 'Categories retrieved successfully'
-        );
+            $paginator = $categories; // LengthAwarePaginator
+            $data = CategoryResource::collection($categories);
+            $pagination = [
+                'current_page' => $categories->currentPage(),
+                'last_page' => $categories->lastPage(),
+                'per_page' => $categories->perPage(),
+                'total' => $categories->total(),
+            ];
+
+            return ApiResponse::successPaginated(
+                data: $data,
+                pagination: $pagination,
+                message: 'Categories retrieved successfully',
+                code: 200
+            );
+        } catch (AuthorizationException $e) {
+            return ApiResponse::error(
+                message: 'Forbidden',
+                code: 403,
+                errors: $e->getMessage()
+            );
+        } catch (Throwable $e) {
+            return ApiResponse::error(
+                message: 'Failed to retrieve categories',
+                code: 500,
+                errors: config('app.debug') ? ['exception' => $e->getMessage()] : null
+            );
+        }
     }
 
     public function store(StoreCategoryRequest $request, CreateCategoryUseCase $useCase): JsonResponse
@@ -42,7 +68,7 @@ class CategoryController extends Controller
         return ApiResponse::success(
             data: new CategoryResource($category),
             message: 'Category created successfully',
-            status: 201
+            code: 201
         );
     }
 

@@ -10,6 +10,9 @@ readonly class LoginDTO
         public string $deviceName = 'api-token',
     ) {}
 
+    /**
+     * Create from Request validated data
+     */
     public static function fromArray(array $data): self
     {
         return new self(

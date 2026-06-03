@@ -20,4 +20,6 @@ interface InventoryRepositoryInterface
     public function updateProductStock(Product $product, int $newStock): Product;
 
     public function createMovement(array $data): StockMovement;
+
+    public function findByBarcode(string $barcode): ?Product;
 }

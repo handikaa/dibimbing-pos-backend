@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Infrastructure\Persistence\Eloquent\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -19,6 +20,10 @@ class Sale extends Model
         'cashier_session_id',
         'cashier_id',
         'customer_name',
+        'customer_phone',
+        'table_code',
+        'order_code',
+        'daily_sequence',
         'subtotal',
         'discount_total',
         'tax_total',
@@ -41,6 +46,10 @@ class Sale extends Model
         'change_amount' => 'float',
         'paid_at' => 'datetime',
         'cancelled_at' => 'datetime',
+        'customer_phone' => 'string',
+        'table_code' => 'string',
+        'order_code' => 'string',
+        'daily_sequence' => 'integer',
     ];
 
     // =========================

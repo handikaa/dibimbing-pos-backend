@@ -9,6 +9,16 @@ use Illuminate\Support\Collection;
 
 class EloquentProductRepository implements ProductRepositoryInterface
 {
+
+    // Tambahkan property model
+    protected Product $model;
+
+    // Constructor
+    public function __construct(Product $model)
+    {
+        $this->model = $model;
+    }
+
     public function paginate(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
         return Product::query()
@@ -64,6 +74,11 @@ class EloquentProductRepository implements ProductRepositoryInterface
         return Product::query()
             ->with('category')
             ->find($id);
+    }
+
+    public function findByBarcode(string $barcode): ?Product
+    {
+        return $this->model->where('barcode', $barcode)->first();
     }
 
     public function create(array $data): Product

@@ -12,6 +12,6 @@ class GetActiveCashierSessionUseCase
 
     public function execute(int $userId): ?CashierSession
     {
-        return $this->repository->getActiveSession($userId);
+        return $this->repository->getActiveSessionByUserId($userId);
     }
 }

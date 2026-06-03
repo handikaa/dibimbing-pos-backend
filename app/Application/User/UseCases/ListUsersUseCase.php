@@ -3,8 +3,7 @@
 namespace App\Application\User\UseCases;
 
 use App\Domain\User\Repositories\UserRepositoryInterface;
-use App\Models\User;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ListUsersUseCase
 {
@@ -12,12 +11,15 @@ class ListUsersUseCase
         private readonly UserRepositoryInterface $repository
     ) {}
 
-    public function execute(User $actor, array $filters = [], int $perPage = 10): LengthAwarePaginator
-    {
-        if ($actor->hasRole('ADMIN')) {
-            $filters['role'] = 'CASHIER';
-        }
-
-        return $this->repository->paginate($filters, $perPage);
+    public function execute(
+        array $filters = [],
+        int $page = 1,
+        int $perPage = 10
+    ): LengthAwarePaginator {
+        return $this->repository->paginate(
+            page: $page,
+            perPage: $perPage,
+            filters: $filters
+        );
     }
 }

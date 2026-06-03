@@ -12,7 +12,13 @@ use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentProductReposito
 use App\Domain\Inventory\Repositories\InventoryRepositoryInterface;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentInventoryRepository;
 use App\Domain\CashierSession\Repositories\CashierSessionRepositoryInterface;
-use App\Infrastructure\Persistence\Eloquent\Repositories\CashierSessionRepository;
+use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentCashierSessionRepository;
+use App\Domain\Rack\Repositories\RackRepositoryInterface;
+use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentRackRepository;
+use App\Domain\Pos\Repositories\PosRepositoryInterface;
+use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentPosRepository;
+use App\Domain\Sales\Repositories\SalesRepositoryInterface;
+use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentSalesRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,11 +43,23 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             InventoryRepositoryInterface::class,
             EloquentInventoryRepository::class
-        
-            );
+
+        );
         $this->app->bind(
             CashierSessionRepositoryInterface::class,
-            CashierSessionRepository::class
+            EloquentCashierSessionRepository::class
+        );
+        $this->app->bind(
+            RackRepositoryInterface::class,
+            EloquentRackRepository::class
+        );
+        $this->app->bind(
+            PosRepositoryInterface::class,
+            EloquentPosRepository::class
+        );
+        $this->app->bind(
+            SalesRepositoryInterface::class,
+            EloquentSalesRepository::class
         );
     }
 

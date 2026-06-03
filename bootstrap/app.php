@@ -10,6 +10,8 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Spatie\Permission\Exceptions\UnauthorizedException;
+
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -26,6 +28,21 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        /**
+         * Jangan pindah urutan ini!
+         */
+
+        $exceptions->render(function (UnauthorizedException $e, $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Forbidden',
+                    'errors' => $e->getMessage()
+                ], 403);
+            }
+        });
+
+        // Handle Validation Exception (422)
         $exceptions->render(function (ValidationException $e, $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
                 $errors = $e->errors();
@@ -36,17 +53,22 @@ return Application::configure(basePath: dirname(__DIR__))
 
                 return ApiResponse::error(
                     message: $firstMessage,
-                    error: $errors,
-                    status: 422
+                    errors: $errors,
+                    code: 422
                 );
             }
 
             return null;
         });
 
+        // Handle Authentication Exception (401)
         $exceptions->render(function (AuthenticationException $e, $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
-                return ApiResponse::error('Unauthenticated', null, 401);
+                return ApiResponse::error(
+                    message: 'Unauthenticated',
+                    errors: 'Please provide valid authentication token',
+                    code: 401
+                );
             }
 
             return null;
@@ -54,42 +76,62 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (AuthorizationException $e, $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
-                return ApiResponse::error('Forbidden', $e->getMessage(), 403);
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage() ?: 'Forbidden',
+                    'errors' => $e->getMessage() ?: 'User does not have the right permissions.'
+                ], 403);
             }
-
-            return null;
         });
 
+        // Handle Model Not Found Exception (404)
         $exceptions->render(function (ModelNotFoundException $e, $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
-                return ApiResponse::error('Resource not found', null, 404);
+                return ApiResponse::error(
+                    message: 'Resource not found',
+                    errors: null,
+                    code: 404
+                );
             }
 
             return null;
         });
 
+        // Handle Route Not Found Exception (404)
         $exceptions->render(function (NotFoundHttpException $e, $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
-                return ApiResponse::error('Route not found', null, 404);
+                return ApiResponse::error(
+                    message: 'Route not found',
+                    errors: null,
+                    code: 404
+                );
             }
 
             return null;
         });
 
+        // Handle Method Not Allowed Exception (405)
         $exceptions->render(function (MethodNotAllowedHttpException $e, $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
-                return ApiResponse::error('Method not allowed', null, 405);
+                return ApiResponse::error(
+                    message: 'Method not allowed',
+                    errors: null,
+                    code: 405
+                );
             }
 
             return null;
         });
 
-        $exceptions->render(function (\Throwable $e, $request) {
+        // Handle All Other Exceptions (500) - GENERAL CATCH-ALL
+        $exceptions->render(function (Throwable $e, $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
+
+
                 return ApiResponse::error(
-                    'Server error',
-                    config('app.debug') ? $e->getMessage() : null,
-                    500
+                    message: 'Server error',
+                    errors: config('app.debug') ? $e->getMessage() : null,
+                    code: 500
                 );
             }
 

@@ -7,23 +7,24 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class AuthResource extends JsonResource
 {
+    /**
+     * Transform the resource into an array.
+     * Expected: ['token' => string, 'user' => User]
+     */
     public function toArray(Request $request): array
     {
-        $user = $this->resource['user'];
-
         return [
-            'token' => $this->resource['token'],
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'is_active' => $user->is_active,
-                'role' => $user->getRoleNames()->first(),
-                'permissions' => $user->getAllPermissions()
-                    ->pluck('name')
-                    ->values(),
-            ],
+            'id' => $this['user']->id,
+            'name' => $this['user']->name,
+            'email' => $this['user']->email,
+            'phone' => $this['user']->phone,
+            'is_active' => $this['user']->is_active,
+            'role' => $this['user']->getRoleNames()->first(),
+            'token' => $this['token'],
+            // 'permissions' => $this['user']->getAllPermissions()
+            //     ->pluck('name')
+            //     ->values(),
+
         ];
     }
 }
