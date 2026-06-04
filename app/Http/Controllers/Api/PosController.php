@@ -15,6 +15,9 @@ use App\Application\Pos\DTOs\OpenBillDTO;
 use App\Application\Pos\UseCases\CheckoutCashUseCase;
 use App\Application\Pos\UseCases\OpenBillUseCase;
 use App\Http\Requests\Pos\CheckoutCashRequest;
+use App\Application\Pos\DTOs\CheckoutMidtransDTO;
+use App\Application\Pos\UseCases\CheckoutMidtransUseCase;
+use App\Http\Requests\Pos\CheckoutMidtransRequest;
 use App\Http\Resources\Sales\SaleResource;
 
 
@@ -60,5 +63,21 @@ class PosController extends Controller
             'message' => 'Open Bill created successfully',
             'data' => new SaleResource($sale)
         ]);
+    }
+
+    public function checkoutMidtrans(
+        CheckoutMidtransRequest $request,
+        CheckoutMidtransUseCase $useCase
+    ): JsonResponse {
+        $sale = $useCase->execute(
+            actor: $request->user(),
+            dto: CheckoutMidtransDTO::fromArray($request->validated())
+        );
+
+        return ApiResponse::success(
+            data: new SaleResource($sale),
+            message: 'Midtrans checkout created successfully',
+            code: 201
+        );
     }
 }

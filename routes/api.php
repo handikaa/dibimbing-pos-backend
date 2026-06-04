@@ -11,11 +11,16 @@ use App\Http\Controllers\Api\CashierSessionController;
 use App\Http\Controllers\Api\RackController;
 use App\Http\Controllers\Api\PosController;
 use App\Http\Controllers\Api\SalesController;
+use App\Http\Controllers\Api\MidtransController;
 
 Route::prefix('v1')->group(function () {
     Route::get('/health', HealthController::class);
 
     Route::post('/auth/login', [AuthController::class, 'login']);
+    // Midtrans webhook endpoint (no authentication, but should verify signature)
+    Route::post('midtrans/webhook', [MidtransController::class, 'webhook']);
+
+
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
@@ -99,6 +104,9 @@ Route::prefix('v1')->group(function () {
             ->middleware('permission:pos.checkout_cash');
         Route::post('/pos/open-bill', [PosController::class, 'openBill'])
             ->middleware(['auth:sanctum', 'permission:pos.open']);
+        Route::post('/pos/checkout/midtrans', [PosController::class, 'checkoutMidtrans'])
+            ->middleware('permission:pos.checkout_midtrans');
+
 
 
 
@@ -118,5 +126,11 @@ Route::prefix('v1')->group(function () {
             ->middleware('permission:pos.open');
         Route::post('/sales/{sale}/checkout/cash', [SalesController::class, 'openBillCheckoutCash'])
             ->middleware('permission:pos.checkout_cash');
+        Route::post('/sales/{sale}/checkout/midtrans', [SalesController::class, 'checkoutMidtrans'])
+            ->middleware('permission:pos.checkout_midtrans');
+        Route::post(
+            '/sales/{sale}/midtrans/check-status',
+            [SalesController::class, 'checkMidtransStatus']
+        );
     });
 });

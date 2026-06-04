@@ -94,4 +94,24 @@ class EloquentSalesRepository implements SalesRepositoryInterface
 
         return $sale->refresh();
     }
+
+    public function findBySaleNumber(
+        string $saleNumber
+    ): ?Sale {
+        return Sale::query()
+            ->with([
+                'items.product',
+                'payment',
+                'cashierSession',
+            ])
+            ->where('sale_number', $saleNumber)
+            ->first();
+    }
+
+    public function listPendingPaymentSales(): iterable
+    {
+        return Sale::with(['items.product', 'payment', 'cashierSession'])
+            ->where('status', 'PENDING_PAYMENT')
+            ->get();
+    }
 }

@@ -24,6 +24,11 @@ use App\Http\Requests\Pos\OpenBillCheckoutCashRequest;
 use App\Application\Pos\DTOs\OpenBillCheckoutCashDTO;
 use App\Application\Pos\UseCases\OpenBillCheckoutCashUseCase;
 use App\Application\Sales\UseCases\DeleteSaleItemUseCase;
+use App\Application\Pos\UseCases\CheckMidtransStatusUseCase;
+use App\Application\Pos\DTOs\OpenBillCheckoutMidtransDTO;
+use App\Application\Pos\UseCases\OpenBillCheckoutMidtransUseCase;
+
+
 use Illuminate\Http\JsonResponse;
 
 class SalesController extends Controller
@@ -108,6 +113,18 @@ class SalesController extends Controller
         );
     }
 
+    public function checkMidtransStatus(
+        int $sale,
+        CheckMidtransStatusUseCase $useCase
+    ) {
+        $updatedSale = $useCase->execute($sale);
+
+        return ApiResponse::success(
+            data: new SaleResource($updatedSale),
+            message: 'Midtrans status checked successfully'
+        );
+    }
+
     public function updateItem(
         int $sale,
         int $item,
@@ -158,6 +175,23 @@ class SalesController extends Controller
         return ApiResponse::success(
             data: new SaleResource($sale),
             message: 'Cash checkout completed successfully',
+            code: 201
+        );
+    }
+
+    public function checkoutMidtrans(
+        int $sale,
+        Request $request,
+        OpenBillCheckoutMidtransUseCase $useCase
+    ) {
+        $updatedSale = $useCase->execute(
+            actor: $request->user(),
+            dto: OpenBillCheckoutMidtransDTO::fromSaleId($sale)
+        );
+
+        return ApiResponse::success(
+            data: new SaleResource($updatedSale),
+            message: 'Open bill Midtrans checkout created successfully',
             code: 201
         );
     }

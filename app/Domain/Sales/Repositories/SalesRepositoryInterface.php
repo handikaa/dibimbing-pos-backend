@@ -19,4 +19,10 @@ interface SalesRepositoryInterface
     public function updateSaleItem(SaleItem $item, array $data): SaleItem;
 
     public function recalculateSaleTotals(Sale $sale): Sale;
+
+    public function findBySaleNumber(string $saleNumber): ?Sale;
+    /**
+     * Ambil semua sale yang status PENDING_PAYMENT
+     */
+    public function listPendingPaymentSales(): iterable;
 }
