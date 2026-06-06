@@ -30,7 +30,6 @@ class CashierSessionController extends Controller
         GetActiveCashierSessionUseCase $useCase
     ): JsonResponse {
         try {
-            // Get user dari Request (properly typed)
             $user = $request->user();
 
             if (!$user) {
@@ -40,15 +39,20 @@ class CashierSessionController extends Controller
                 );
             }
 
-            // Pass user ID ke UseCase
             $session = $useCase->execute($user->id);
+
+            if (!$session) {
+                return ApiResponse::error(
+                    message: 'No active cashier session',
+                    code: 404
+                );
+            }
 
             return ApiResponse::success(
                 data: $session,
-                message: 'Success'
+                message: 'Active cashier session found'
             );
         } catch (Throwable $e) {
-
             return ApiResponse::error(
                 message: 'Failed to fetch active session',
                 errors: config('app.debug') ? [

@@ -4,19 +4,25 @@ namespace App\Http\Controllers\Api;
 
 use App\Application\User\DTOs\CreateUserDTO;
 use App\Application\User\DTOs\UpdateUserDTO;
+use App\Application\User\DTOs\RegisterUserDTO;
 use App\Application\User\UseCases\CreateUserUseCase;
 use App\Application\User\UseCases\DeactivateUserUseCase;
 use App\Application\User\UseCases\ListUsersUseCase;
+use App\Application\User\UseCases\RegisterUserUseCase;
 use App\Application\User\UseCases\ShowUserUseCase;
 use App\Application\User\UseCases\UpdateUserUseCase;
+use App\Application\User\UseCases\RegisterUserWithoutEmailUseCase;
+use App\Application\User\UseCases\ActivateUserUseCase;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\RegisterUserRequest;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\User\UserResource;
 use App\Http\Responses\ApiResponse;
+use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Auth\Access\AuthorizationException;
 
 class UserController extends Controller
 {
@@ -103,6 +109,50 @@ class UserController extends Controller
         return ApiResponse::success(
             data: new UserResource($user),
             message: 'User deactivated successfully'
+        );
+    }
+
+    public function register(RegisterUserRequest $request, RegisterUserUseCase $useCase)
+    {
+        $validated = $request->validated();
+
+        $dto = new RegisterUserDTO(
+            name: $validated['name'],
+            email: $validated['email'],
+            phone: $validated['phone'] ?? null,
+            role: $validated['role'],
+        );
+
+        $useCase->execute($dto);
+
+        return ApiResponse::success(
+            message: 'User registered successfully. Activation email sent.'
+        );
+    }
+
+    public function registerWithoutResend(
+        RegisterUserRequest $request,
+        RegisterUserWithoutEmailUseCase $useCase
+    ): JsonResponse {
+        $dto = RegisterUserDTO::fromArray($request->validated());
+
+        $user = $useCase->execute($dto);
+
+        return ApiResponse::success(
+            data: new UserResource($user),
+            message: 'User registered successfully. Account is inactive by default.'
+        );
+    }
+
+    public function activate(
+        User $user,
+        ActivateUserUseCase $useCase
+    ): JsonResponse {
+        $activatedUser = $useCase->execute($user);
+
+        return ApiResponse::success(
+            data: new UserResource($activatedUser),
+            message: 'User activated successfully.'
         );
     }
 }

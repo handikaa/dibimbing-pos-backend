@@ -15,6 +15,8 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    'frontend_url' => env('APP_FRONTEND_URL', 'https://dibimbing-pos-frontend.vercel.app'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

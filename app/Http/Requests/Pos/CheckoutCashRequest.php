@@ -14,9 +14,9 @@ class CheckoutCashRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'customer_name' => ['required', 'string', 'max:150'],
-            'customer_phone' => ['required', 'string', 'max:30'],
-            'table_code' => ['required', 'string', 'max:20'],
+            'customer_name' => ['nullable', 'string', 'max:150'],
+            'customer_phone' => ['nullable', 'string', 'max:30'],
+            'table_code' => ['nullable', 'string', 'max:20'],
             'cash_received' => [
                 'required',
                 'numeric',

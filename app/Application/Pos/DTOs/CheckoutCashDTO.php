@@ -8,10 +8,10 @@ readonly class CheckoutCashDTO
      * @param CheckoutCashItemDTO[] $items
      */
     public function __construct(
-        public string $customerName,
-        public string $customerPhone,
+        public ?string $customerName,
+        public ?string $customerPhone,
         public int $cashReceived,
-        public string $tableCode,
+        public ?string $tableCode,
         public array $items,
         public int $transactionDiscountAmount = 0,
         public ?string $notes = null,
@@ -20,9 +20,9 @@ readonly class CheckoutCashDTO
     public static function fromArray(array $data): self
     {
         return new self(
-            customerName: $data['customer_name'],
-            customerPhone: $data['customer_phone'],
-            tableCode: $data['table_code'],
+            customerName: $data['customer_name'] ?? null,
+            customerPhone: $data['customer_phone'] ?? null,
+            tableCode: $data['table_code'] ?? null,
             items: array_map(
                 fn(array $item) => CheckoutCashItemDTO::fromArray($item),
                 $data['items']

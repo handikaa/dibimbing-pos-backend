@@ -90,10 +90,10 @@ class CheckoutCashUseCase
 
             $dailySequence = $this->repository->getTodaySalesCount() + 1;
             $orderCode = $this->generateOrderCode(
-                customerName: $dto->customerName,
-                customerPhone: $dto->customerPhone,
+                customerName: $dto->customerName ?? 'Customer',
+                customerPhone: $dto->customerPhone ?? '000',
                 dailySequence: $dailySequence,
-                tableCode: $dto->tableCode
+                tableCode: $dto->tableCode ?? 'NA'
             );
             $sale = $this->repository->createSale([
                 'sale_number' => $this->repository->generateSaleNumber(),

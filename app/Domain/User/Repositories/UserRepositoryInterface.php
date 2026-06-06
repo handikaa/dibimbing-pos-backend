@@ -16,4 +16,8 @@ interface UserRepositoryInterface
     public function update(User $user, array $data): User;
 
     public function deactivate(User $user): User;
+
+    public function findByActivationToken(string $token): ?User;
+
+    public function activate(User $user): User;
 }

@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\CashierSessionController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\RackController;
 use App\Http\Controllers\Api\PosController;
 use App\Http\Controllers\Api\SalesController;
@@ -21,18 +22,23 @@ Route::prefix('v1')->group(function () {
     Route::post('midtrans/webhook', [MidtransController::class, 'webhook']);
 
 
-
     Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/dashboard/owner', [DashboardController::class, 'owner']);
+
+
+
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/profile', [AuthController::class, 'profile']);
         Route::put('/auth/change-password', [AuthController::class, 'changePassword']);
+        Route::post('/users/register', [UserController::class, 'register'])->middleware('permission:user.create');
+        Route::post('/users/register-without-resend', [UserController::class, 'registerWithoutResend'])->middleware('permission:user.create');
+        Route::post('/users/{user}/activate', [UserController::class, 'activate'])->middleware('permission:user.update');
 
         Route::get('/users', [UserController::class, 'index'])->middleware('permission:user.view_any');
         Route::post('/users', [UserController::class, 'store'])->middleware('permission:user.create');
         Route::get('/users/{id}', [UserController::class, 'show'])->middleware('permission:user.view_any');
         Route::put('/users/{id}', [UserController::class, 'update'])->middleware('permission:user.update');
         Route::patch('/users/{id}/deactivate', [UserController::class, 'deactivate'])->middleware('permission:user.deactivate');
-
 
         Route::get('/categories', [CategoryController::class, 'index'])
             ->middleware('permission:category.view_any');
